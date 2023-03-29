@@ -101,7 +101,7 @@ class QGModel(qg_diagnostics.QGDiagnostics):
         #self.rek = rek
         self.rd = rd
         self.delta = delta
-        self.Hi = np.array([H1, H1/delta])
+        self.Hi = np.array([ H1, H1/delta])
         self.U1 = U1
         self.U2 = U2
         #self.filterfac = filterfac
@@ -271,3 +271,6 @@ class QGModel(qg_diagnostics.QGDiagnostics):
             units='m^2 s^-3',
             dims=('time',)
        )
+
+
+        
