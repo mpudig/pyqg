@@ -59,6 +59,7 @@ class QGModel(qg_diagnostics.QGDiagnostics):
 
     def __init__(
         self,
+        f0=0.00014583244080045151   # coriolis parameter at same latitude as beta below
         beta=1.5e-11,               # gradient of coriolis parameter
         #rek=5.787e-7,               # linear drag in lower layer
         rd=15000.0,                 # deformation radius
@@ -66,12 +67,16 @@ class QGModel(qg_diagnostics.QGDiagnostics):
         H1 = 500,                   # depth of layer 1 (H1)
         U1=0.025,                   # upper layer flow
         U2=0.0,                     # lower layer flow
+        hy=0.0                      # merdional gradient of linearly sloping topography
         **kwargs
         ):
         """
         Parameters
         ----------
 
+        f0 : number
+            Constant value of coriolis parameter at same latitude
+            as beta below. Units: seconds :sup:`-1`
         beta : number
             Gradient of coriolis parameter. Units: meters :sup:`-1`
             seconds :sup:`-1`
@@ -85,17 +90,22 @@ class QGModel(qg_diagnostics.QGDiagnostics):
             Upper layer flow. Units: meters seconds :sup:`-1`
         U2 : number
             Lower layer flow. Units: meters seconds :sup:`-1`
+        hy : number
+            The merdional gradient of linearly sloping topography.
+            Units: meters :sup:`-1` 
         """
 
         # physical
+        self.f0 = f0
         self.beta = beta
         #self.rek = rek
         self.rd = rd
         self.delta = delta
-        self.Hi = np.array([ H1, H1/delta])
+        self.Hi = np.array([H1, H1/delta])
         self.U1 = U1
         self.U2 = U2
         #self.filterfac = filterfac
+        self.hy = hy
 
         super().__init__(nz=2, **kwargs)
 
@@ -122,7 +132,7 @@ class QGModel(qg_diagnostics.QGDiagnostics):
 
         # the meridional PV gradients in each layer
         self.Qy1 = self.beta + self.F1*(self.U1 - self.U2)
-        self.Qy2 = self.beta - self.F2*(self.U1 - self.U2)
+        self.Qy2 = self.beta - self.F2*(self.U1 - self.U2) + (self.f0 / self.H)*self.hy
         self.Qy = np.array([self.Qy1, self.Qy2])
         # complex versions, multiplied by k, speeds up computations to precompute
         self.ikQy1 = self.Qy1 * 1j * self.k
@@ -261,5 +271,3 @@ class QGModel(qg_diagnostics.QGDiagnostics):
             units='m^2 s^-3',
             dims=('time',)
        )
-
-
