@@ -272,5 +272,3 @@ class QGModel(qg_diagnostics.QGDiagnostics):
             dims=('time',)
        )
 
-
-        
