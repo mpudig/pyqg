@@ -92,7 +92,10 @@ class QGModel(qg_diagnostics.QGDiagnostics):
             Lower layer flow. Units: meters seconds :sup:`-1`
         hy : number
             The merdional gradient of linearly sloping topography.
-            Units: meters :sup:`-1` 
+            Units: meters :sup:`-1`
+        hx : number
+            The zonal gradient of linearly sloping topography.
+            Units: meters :sup:`-1`
         """
 
         # physical
@@ -106,6 +109,7 @@ class QGModel(qg_diagnostics.QGDiagnostics):
         self.U2 = U2
         #self.filterfac = filterfac
         self.hy = hy
+        self.hx = hx
 
         super().__init__(nz=2, **kwargs)
 
@@ -137,11 +141,20 @@ class QGModel(qg_diagnostics.QGDiagnostics):
         # complex versions, multiplied by k, speeds up computations to precompute
         self.ikQy1 = self.Qy1 * 1j * self.k
         self.ikQy2 = self.Qy2 * 1j * self.k
+        
+        # the zonal PV gradients in each layer
+        self.Qx1 = 0.
+        self.Qx2 = (self.f0 / self.H)*self.hx
+        self.Qx = np.array([self.Qx1, self.Qx2])
+        # complex versions, multiplied by l, speeds up computations to precompute
+        self.ilQx1 = self.Qx1 * 1j * self.l
+        self.ilQx2 = self.Qx2 * 1j * self.l
 
         # vector version
         self.ikQy = np.vstack([self.ikQy1[np.newaxis,...],
                                self.ikQy2[np.newaxis,...]])
-        self.ilQx = 0.
+        self.ilQx = np.vstack([self.ilQx1[np.newaxis,...],
+                               self.ilQx2[np.newaxis,...]])
 
         # layer spacing
         self.del1 = self.delta/(self.delta+1.)
