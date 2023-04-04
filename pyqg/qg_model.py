@@ -16,44 +16,30 @@ except ImportError:
 
 class QGModel(qg_diagnostics.QGDiagnostics):
     r"""Two layer quasigeostrophic model.
-
     This model is meant to representflows driven by baroclinic instabilty of a
     base-state shear :math:`U_1-U_2`. The upper and lower
     layer potential vorticity anomalies :math:`q_1` and :math:`q_2` are
-
     .. math::
-
         q_1 &= \nabla^2\psi_1 + F_1(\psi_2 - \psi_1) \\
         q_2 &= \nabla^2\psi_2 + F_2(\psi_1 - \psi_2)
-
     with
-
     .. math::
         F_1 &\equiv \frac{k_d^2}{1 + \delta^2} \\
         F_2 &\equiv \delta F_1 \ .
-
     The layer depth ratio is given by :math:`\delta = H_1 / H_2`.
     The total depth is :math:`H = H_1 + H_2`.
-
     The background potential vorticity gradients are
-
     .. math::
-
         \beta_1 &= \beta + F_1(U_1 - U_2) \\
         \beta_2 &= \beta - F_2( U_1 - U_2) \ .
-
     The evolution equations for :math:`q_1` and :math:`q_2` are
-
     .. math::
-
         \partial_t\,{q_1} + J(\psi_1\,, q_1) + \beta_1\,
         {\psi_1}_x &= \text{ssd} \\
         \partial_t\,{q_2} + J(\psi_2\,, q_2)+ \beta_2\, {\psi_2}_x
         &= -r_{ek}\nabla^2 \psi_2 + \text{ssd}\,.
-
     where `ssd` represents small-scale dissipation and :math:`r_{ek}` is the
     Ekman friction parameter.
-
     """
 
 
@@ -68,12 +54,12 @@ class QGModel(qg_diagnostics.QGDiagnostics):
         U1=0.025,                   # upper layer flow
         U2=0.0,                     # lower layer flow
         hy=0.0                      # merdional gradient of linearly sloping topography
+        hx=0.0                      # zonal gradient of linearly sloping topography
         **kwargs
         ):
         """
         Parameters
         ----------
-
         f0 : number
             Constant value of coriolis parameter at same latitude
             as beta below. Units: seconds :sup:`-1`
@@ -194,10 +180,8 @@ class QGModel(qg_diagnostics.QGDiagnostics):
 
     def set_q1q2(self, q1, q2, check=False):
         """Set upper and lower layer PV anomalies.
-
         Parameters
         ----------
-
         q1 : array-like
             Upper layer PV anomaly in spatial coordinates.
         q1 : array-like
@@ -217,10 +201,8 @@ class QGModel(qg_diagnostics.QGDiagnostics):
 
     def set_U1U2(self, U1, U2):
         """Set background zonal flow.
-
         Parameters
         ----------
-
         U1 : number
             Upper layer flow. Units: meters seconds :sup:`-1`
         U2 : number
@@ -284,4 +266,3 @@ class QGModel(qg_diagnostics.QGDiagnostics):
             units='m^2 s^-3',
             dims=('time',)
        )
-

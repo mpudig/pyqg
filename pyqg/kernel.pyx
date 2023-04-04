@@ -83,7 +83,9 @@ cdef class PseudoSpectralKernel:
     # background state constants (functions of z only)
     cdef DTYPE_real_t [:] Ubg
     cdef DTYPE_real_t [:] Qy
+    cdef DTYPE_real_t [:] Qx
     cdef readonly DTYPE_com_t [:, :] _ikQy
+    cdef readonly DTYPE_com_t [:, :] _ilQx
 
     # spectral filter
     # TODO: figure out if this really needs to be public
@@ -391,7 +393,8 @@ cdef class PseudoSpectralKernel:
                     # overwrite the tendency, since the forcing gets called after
                     self.dqhdt[k,j,i] = -( self._ik[i] * self.uqh[k,j,i] +
                                     self._il[j] * self.vqh[k,j,i] +
-                                    self._ikQy[k,i] * self.ph[k,j,i] )
+                                    self._ikQy[k,i] * self.ph[k,j,i] +
+                                    self._ilQx[j,i] * self.ph[k,j,i])
         return
 
     def _do_uv_subgrid_parameterization(self):
@@ -573,6 +576,13 @@ cdef class PseudoSpectralKernel:
             self.Qy = Qy
             self._ikQy = 1j * (np.asarray(self.kk)[np.newaxis, :] *
                                np.asarray(Qy)[:, np.newaxis])
+    property Qx:
+        def __get__(self):
+            return np.asarray(self.Qx)
+        def __set__(self, np.ndarray[DTYPE_real_t, ndim=1] Qx):
+            self.Qx = Qx
+            self._ilQx = 1j * (np.asarray(self.ll)[np.newaxis, :] *
+                               np.asarray(Qx)[:, np.newaxis])
     property q:
         def __get__(self):
             return np.asarray(self.q)
