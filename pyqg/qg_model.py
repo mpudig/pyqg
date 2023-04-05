@@ -56,7 +56,7 @@ class QGModel(qg_diagnostics.QGDiagnostics):
 
     def __init__(
         self,
-        f0=0.00014583244080045151   # coriolis parameter at same latitude as beta below
+        f0=0.00014583244080045151,   # coriolis parameter at same latitude as beta below
         beta=1.5e-11,               # gradient of coriolis parameter
         #rek=5.787e-7,               # linear drag in lower layer
         rd=15000.0,                 # deformation radius
@@ -64,8 +64,8 @@ class QGModel(qg_diagnostics.QGDiagnostics):
         H1 = 500,                   # depth of layer 1 (H1)
         U1=0.025,                   # upper layer flow
         U2=0.0,                     # lower layer flow
-        hy=0.0                      # merdional gradient of linearly sloping topography
-        hx=0.0                      # zonal gradient of linearly sloping topography
+        hy=0.0,                      # merdional gradient of linearly sloping topography
+        hx=0.0,                      # zonal gradient of linearly sloping topography
         **kwargs
         ):
         """
