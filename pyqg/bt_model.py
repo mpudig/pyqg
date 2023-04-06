@@ -23,24 +23,35 @@ class BTModel(model.Model):
 
     """
 
-    def __init__(self, beta=0.,  rd=0., H=1., U=0., **kwargs):
+    def __init__(self, f0=0., beta=0.,  rd=0., H=1., hy=0., hx=0., U=0., **kwargs):
         """
         Parameters
         ----------
-
+        f0 : number, optional
+            Constant value of coriolis parameters, should be at same latitude as what is given for \beta.
+            Units: seconds :sup:`-1`
         beta : number, optional
             Gradient of coriolis parameter. Units: meters :sup:`-1`
             seconds :sup:`-1`
         rd : number, optional
             Deformation radius. Units: meters.
+        H : number, optional
+            Mean height of layer. Units: meters
+        hy : number, optional
+            Meridional gradient of linearly sloping topography.
+        hx : number, optional
+            Zonal gradient of linearly sloping topography.
         U : number, optional
             Upper layer flow. Units: meters seconds :sup:`-1`.
         """
 
+        self.f0 = f0
         self.beta = beta
         self.rd = rd
         self.H = H
         self.Hi = np.array(H)[np.newaxis,...]
+        self.hy = hy
+        self.hx = hx
         self.U = U
 
         self.nz = 1
@@ -60,15 +71,18 @@ class BTModel(model.Model):
         """Set up background state (zonal flow and PV gradients)."""
 
         # the meridional PV gradients in each layer
-        self.Qy = np.asarray(self.beta)[np.newaxis, ...]
+        self.Qy = np.asarray(self.beta + (self.f0 / self.H)*self.hy)[np.newaxis, ...]
+        
+        # the zonal PV gradients in each layer
+        self.Qx = np.asarray((self.f0 / self.H)*self.hx)[np.newaxis, ...]
 
         # background vel.
         self.set_U(self.U)
 
-        # complex versions, multiplied by k, speeds up computations to pre-compute
+        # complex versions, multiplied by k, l, speeds up computations to pre-compute
         self.ikQy = self.Qy * 1j * self.k
 
-        self.ilQx = 0.
+        self.ilQx = self.Qx * 1j * self.l
 
     def _initialize_inversion_matrix(self):
         """ the inversion """
