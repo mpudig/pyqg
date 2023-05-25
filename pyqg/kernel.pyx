@@ -45,6 +45,8 @@ cdef class PseudoSpectralKernel:
     cdef DTYPE_real_t [:, :, :] v
     cdef DTYPE_com_t [:, :, :] uh
     cdef DTYPE_com_t [:, :, :] vh
+    # topography
+    cdef DTYPE_real_t [:, :, :] h
     # pv fluxes
     cdef DTYPE_real_t [:, :, :] uq
     cdef DTYPE_real_t [:, :, :] vq
@@ -161,8 +163,6 @@ cdef class PseudoSpectralKernel:
         
         h = self._empty_real()
         self.h = h
-        hh = self._empty_com()
-        self.hh = hh
 
         uq = self._empty_real()
         self.uq = uq
