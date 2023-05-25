@@ -23,7 +23,7 @@ class BTModel(model.Model):
 
     """
 
-    def __init__(self, f0=0., beta=0.,  rd=0., H=1., hy=0., hx=0., U=0., **kwargs):
+    def __init__(self, f0=0., beta=0.,  rd=0., H=1., h=np.zeros((self.ny,self.nx)), hy=0., hx=0., U=0., **kwargs):
         """
         Parameters
         ----------
@@ -37,6 +37,9 @@ class BTModel(model.Model):
             Deformation radius. Units: meters.
         H : number, optional
             Mean height of layer. Units: meters
+        h : array, optional
+            Height of rough topography. Assumed to be doubly-periodic.
+            Units: meters
         hy : number, optional
             Meridional gradient of linearly sloping topography.
         hx : number, optional
@@ -50,6 +53,7 @@ class BTModel(model.Model):
         self.rd = rd
         self.H = H
         self.Hi = np.array(H)[np.newaxis,...]
+        self.h = np.array(h)[np.newaxis,...]
         self.hy = hy
         self.hx = hx
         self.U = U
