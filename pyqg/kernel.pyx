@@ -46,17 +46,17 @@ cdef class PseudoSpectralKernel:
     cdef DTYPE_com_t [:, :, :] uh
     cdef DTYPE_com_t [:, :, :] vh
     # topography
-    cdef DTYPE_real_t [:, :, :] h
+    cdef DTYPE_real_t [:, :, :] htop
     # pv fluxes
     cdef DTYPE_real_t [:, :, :] uq
     cdef DTYPE_real_t [:, :, :] vq
     cdef readonly DTYPE_com_t [:, :, :] uqh
     cdef readonly DTYPE_com_t [:, :, :] vqh
     # topgraphy fluxes
-    cdef DTYPE_real_t [:, :, :] uh
-    cdef DTYPE_real_t [:, :, :] vh
-    cdef readonly DTYPE_com_t [:, :, :] uhh
-    cdef readonly DTYPE_com_t [:, :, :] vhh
+    cdef DTYPE_real_t [:, :, :] uhtop
+    cdef DTYPE_real_t [:, :, :] vhtop
+    cdef readonly DTYPE_com_t [:, :, :] uhtoph
+    cdef readonly DTYPE_com_t [:, :, :] vhtoph
     # the tendencies
     cdef DTYPE_com_t [:, :, :] dqhdt
     cdef DTYPE_com_t [:, :, :] dqhdt_p
@@ -123,8 +123,8 @@ cdef class PseudoSpectralKernel:
     cdef object ifft_vh_to_v
     cdef object fft_uq_to_uqh
     cdef object fft_vq_to_vqh
-    cdef object fft_uh_to_uhh
-    cdef object fft_vh_to_vhh
+    cdef object fft_uhtop_to_uhtoph
+    cdef object fft_vhtop_to_vhtoph
     cdef object _dummy_fft
     cdef object _dummy_ifft
 
@@ -161,8 +161,8 @@ cdef class PseudoSpectralKernel:
         vh = self._empty_com()
         self.vh = vh
         
-        h = self._empty_real()
-        self.h = h
+        htop = self._empty_real()
+        self.htop = htop
 
         uq = self._empty_real()
         self.uq = uq
@@ -174,15 +174,15 @@ cdef class PseudoSpectralKernel:
         vqh = self._empty_com()
         self.vqh = vqh
         
-        uh = self._empty_real()
-        self.uh = uh
-        uhh = self._empty_com()
-        self.uhh = uhh
+        uhtop = self._empty_real()
+        self.uhtop = uhtop
+        uhtoph = self._empty_com()
+        self.uhtoph = uhtoph
 
-        vh = self._empty_real()
-        self.vh = vh
-        vhh = self._empty_com()
-        self.vhh = vhh
+        vhtop = self._empty_real()
+        self.vhtop = vhtop
+        vhtoph = self._empty_com()
+        self.vhtoph = vhtoph
 
         # variables for subgrid parameterizations
         if has_uv_param:
@@ -259,9 +259,9 @@ cdef class PseudoSpectralKernel:
                              direction='FFTW_FORWARD', axes=(-2,-1))
             self.fft_vq_to_vqh = pyfftw.FFTW(vq, vqh, threads=fftw_num_threads,
                              direction='FFTW_FORWARD', axes=(-2,-1))
-            self.fft_uh_to_uhh = pyfftw.FFTW(uh, uhh, threads=fftw_num_threads,
+            self.fft_uhtop_to_uhtoph = pyfftw.FFTW(uhtop, uhtoph, threads=fftw_num_threads,
                              direction='FFTW_FORWARD', axes=(-2,-1))
-            self.fft_vh_to_vhh = pyfftw.FFTW(vh, vhh, threads=fftw_num_threads,
+            self.fft_vhtop_to_vhtoph = pyfftw.FFTW(vhtop, vhtoph, threads=fftw_num_threads,
                              direction='FFTW_FORWARD', axes=(-2,-1))
             # dummy ffts for diagnostics
             self._dummy_fft = pyfftw.FFTW(dfftin, dfftout, threads=fftw_num_threads,
@@ -289,10 +289,10 @@ cdef class PseudoSpectralKernel:
             self.uqh = npfft.rfftn(self.uq, axes=(-2,-1))
         def fft_vq_to_vqh(self):
             self.vqh = npfft.rfftn(self.vq, axes=(-2,-1))
-        def fft_uh_to_uhh(self):
-            self.uhh = npfft.rfftn(self.uh, axes=(-2,-1))
-        def fft_vh_to_vhh(self):
-            self.vhh = npfft.rfftn(self.vh, axes=(-2,-1))
+        def fft_uhtop_to_uhtoph(self):
+            self.uhtoph = npfft.rfftn(self.uhtop, axes=(-2,-1))
+        def fft_vhtop_to_vhtoph(self):
+            self.vhtoph = npfft.rfftn(self.vhtop, axes=(-2,-1))
         def _dummy_fft(self):
             self._dummy_fft_out = npfft.rfftn(self._dummy_fft_in, axes=(-2,-1))
         def _dummy_ifft(self):
@@ -502,20 +502,20 @@ cdef class PseudoSpectralKernel:
         cdef Py_ssize_t k = self.nz-1
         cdef Py_ssize_t j, i
         
-        if self.h:
+        if self.htop:
         
         # multiply to get topographic flux in space
             for j in prange(self.ny, nogil=True, schedule='static',
                       chunksize=self.chunksize,
                       num_threads=self.num_threads):
                 for i in range(self.nx):
-                    self.uh[k,j,i] = self.u[k,j,i] * (self.f0 / self.Hi[k])*self.h[k,j,i]
-                    self.vh[k,j,i] = self.v[k,j,i] * (self.f0 / self.Hi[k])*self.h[k,j,i]
+                    self.uhtop[k,j,i] = self.u[k,j,i] * (self.f0 / self.Hi[k])*self.htop[k,j,i]
+                    self.vhtop[k,j,i] = self.v[k,j,i] * (self.f0 / self.Hi[k])*self.htop[k,j,i]
 
         # transform to get spectral topographic flux
         with gil:
-            self.fft_uh_to_uhh()
-            self.fft_vh_to_vhh()
+            self.fft_uhtop_to_uhtoph()
+            self.fft_vhtop_to_vhtoph()
             
         # add spectral topographic flux to advection in bottom layer
             for j in prange(self.nl, nogil=True, schedule='static',
@@ -524,8 +524,8 @@ cdef class PseudoSpectralKernel:
                 for i in range(self.nk):
                     self.dqhdt[k,j,i] = (
                      self.dqhdt[k,j,i] +
-                             (self._ik[i] * self.uhh[k,j,i] +
-                                    self._il[j] * self.vhh[k,j,i]) )
+                             (self._ik[i] * self.uhtoph[k,j,i] +
+                                    self._il[j] * self.vhtoph[k,j,i]) )
         return
 
     def _forward_timestep(self):
@@ -682,9 +682,9 @@ cdef class PseudoSpectralKernel:
     property v:
         def __get__(self):
             return np.asarray(self.v)
-    property h:
+    property htop:
         def __get__(self):
-            return np.asarray(self.h)
+            return np.asarray(self.htop)
     property ufull:
         def __get__(self):
             return np.asarray(self.u) + \
