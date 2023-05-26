@@ -23,7 +23,7 @@ class BTModel(model.Model):
 
     """
 
-    def __init__(self, f0=0., beta=0.,  rd=0., H=1., htop=np.zeros((self.ny,self.nx)), hy=0., hx=0., U=0., **kwargs):
+    def __init__(self, f0=0., beta=0.,  rd=0., H=1., htop=np.zeros((int(self.ny),int(self.nx))), hy=0., hx=0., U=0., **kwargs):
         """
         Parameters
         ----------
