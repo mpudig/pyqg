@@ -437,8 +437,8 @@ cdef class PseudoSpectralKernel:
                       chunksize=self.chunksize,
                       num_threads=self.num_threads):
             for i in range(self.nx):
-                self.uhtop[self.nz-1,j,i] = self.u[self.nz-1,j,i] * (self.f0 / self.Hi[self.nz-1])*self.htop[self.nz-1,j,i]
-                self.vhtop[self.nz-1,j,i] = self.v[self.nz-1,j,i] * (self.f0 / self.Hi[self.nz-1])*self.htop[self.nz-1,j,i]
+                self.uhtop[self.nz-1,j,i] = self.u[self.nz-1,j,i] * (self.f0 / self.Hi[self.nz-1])*self.htop[0,j,i]
+                self.vhtop[self.nz-1,j,i] = self.v[self.nz-1,j,i] * (self.f0 / self.Hi[self.nz-1])*self.htop[0,j,i]
 
         # transform to get spectral topographic flux
         with gil:
