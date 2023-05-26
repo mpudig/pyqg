@@ -66,7 +66,8 @@ class BTModel(model.Model):
             self.kd2 = 0.
             
         # rough topography
-        if htop is not None:
+        # if htop is not None:
+        if htop.size > 0:
             self.htop = np.array(htop)[np.newaxis,...]
         else:
             self.htop = np.zeros((int(self.ny),int(self.nx)))[np.newaxis,...]

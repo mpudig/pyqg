@@ -223,9 +223,6 @@ cdef class PseudoSpectralKernel:
 
         # friction
         self.rek = 0.0
-        
-        # for bottom topography
-        self.f0 = 0.0
 
         # the tendency
         self.dqhdt = self._empty_com()
@@ -432,6 +429,33 @@ cdef class PseudoSpectralKernel:
                                     self._il[j] * self.vqh[k,j,i] +
                                     self._ikQy[k,i] * self.ph[k,j,i] -
                                     self._ilQx[k,j] * self.ph[k,j,i] )
+                    
+        """Apply bottom topography term to lower layer tendency"""
+        
+        cdef Py_ssize_t k = self.nz-1
+        
+        # multiply to get topographic flux in space
+        for j in prange(self.ny, nogil=True, schedule='static',
+                      chunksize=self.chunksize,
+                      num_threads=self.num_threads):
+            for i in range(self.nx):
+                self.uhtop[k,j,i] = self.u[k,j,i] * (self.f0 / self.Hi[k])*self.htop[k,j,i]
+                self.vhtop[k,j,i] = self.v[k,j,i] * (self.f0 / self.Hi[k])*self.htop[k,j,i]
+
+        # transform to get spectral topographic flux
+        with gil:
+            self.fft_uhtop_to_uhtoph()
+            self.fft_vhtop_to_vhtoph()
+            
+        # add spectral topographic flux to advection in bottom layer
+        for j in prange(self.nl, nogil=True, schedule='static',
+                      chunksize=self.chunksize,
+                      num_threads=self.num_threads):
+            for i in range(self.nk):
+                self.dqhdt[k,j,i] = (
+                     self.dqhdt[k,j,i] +
+                             (self._ik[i] * self.uhtoph[k,j,i] +
+                                    self._il[j] * self.vhtoph[k,j,i]) )
         return
 
     def _do_uv_subgrid_parameterization(self):
@@ -503,35 +527,35 @@ cdef class PseudoSpectralKernel:
     def _bottom_topography(self):
         self.__bottom_topography()
 
-    cdef void __bottom_topography(self) nogil:
-        """Apply bottom topography term to lower layer tendency"""
+#     cdef void __bottom_topography(self) nogil:
+#         """Apply bottom topography term to lower layer tendency"""
         
-        cdef Py_ssize_t k = self.nz-1
-        cdef Py_ssize_t j, i
+#         cdef Py_ssize_t k = self.nz-1
+#         cdef Py_ssize_t j, i
         
-        # multiply to get topographic flux in space
-        for j in prange(self.ny, nogil=True, schedule='static',
-                      chunksize=self.chunksize,
-                      num_threads=self.num_threads):
-            for i in range(self.nx):
-                self.uhtop[k,j,i] = self.u[k,j,i] * (self.f0 / self.Hi[k])*self.htop[k,j,i]
-                self.vhtop[k,j,i] = self.v[k,j,i] * (self.f0 / self.Hi[k])*self.htop[k,j,i]
+#         # multiply to get topographic flux in space
+#         for j in prange(self.ny, nogil=True, schedule='static',
+#                       chunksize=self.chunksize,
+#                       num_threads=self.num_threads):
+#             for i in range(self.nx):
+#                 self.uhtop[k,j,i] = self.u[k,j,i] * (self.f0 / self.Hi[k])*self.htop[k,j,i]
+#                 self.vhtop[k,j,i] = self.v[k,j,i] * (self.f0 / self.Hi[k])*self.htop[k,j,i]
 
-        # transform to get spectral topographic flux
-        with gil:
-            self.fft_uhtop_to_uhtoph()
-            self.fft_vhtop_to_vhtoph()
+#         # transform to get spectral topographic flux
+#         with gil:
+#             self.fft_uhtop_to_uhtoph()
+#             self.fft_vhtop_to_vhtoph()
             
-        # add spectral topographic flux to advection in bottom layer
-        for j in prange(self.nl, nogil=True, schedule='static',
-                      chunksize=self.chunksize,
-                      num_threads=self.num_threads):
-            for i in range(self.nk):
-                self.dqhdt[k,j,i] = (
-                     self.dqhdt[k,j,i] +
-                             (self._ik[i] * self.uhtoph[k,j,i] +
-                                    self._il[j] * self.vhtoph[k,j,i]) )
-        return
+#         # add spectral topographic flux to advection in bottom layer
+#         for j in prange(self.nl, nogil=True, schedule='static',
+#                       chunksize=self.chunksize,
+#                       num_threads=self.num_threads):
+#             for i in range(self.nk):
+#                 self.dqhdt[k,j,i] = (
+#                      self.dqhdt[k,j,i] +
+#                              (self._ik[i] * self.uhtoph[k,j,i] +
+#                                     self._il[j] * self.vhtoph[k,j,i]) )
+#         return
 
     def _forward_timestep(self):
         """Step forward based on tendencies"""
