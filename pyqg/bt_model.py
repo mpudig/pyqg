@@ -23,7 +23,7 @@ class BTModel(model.Model):
 
     """
 
-    def __init__(self, f0=0., beta=0.,  rd=0., H=1., htop=np.zeros((int(self.ny),int(self.nx))), hy=0., hx=0., U=0., **kwargs):
+    def __init__(self, f0=0., beta=0.,  rd=0., H=1., htop=np.zeros((0,0)), hy=0., hx=0., U=0., **kwargs):
         """
         Parameters
         ----------
@@ -53,7 +53,6 @@ class BTModel(model.Model):
         self.rd = rd
         self.H = H
         self.Hi = np.array(H)[np.newaxis,...]
-        self.htop = np.array(htop)[np.newaxis,...]
         self.hy = hy
         self.hx = hx
         self.U = U
@@ -65,6 +64,12 @@ class BTModel(model.Model):
             self.kd2 = rd**-2
         else:
             self.kd2 = 0.
+            
+        # rough topography
+        if htop is not None:
+            self.htop = np.array(htop)[np.newaxis,...]
+        else:
+            self.htop = np.zeros((int(self.ny),int(self.nx)))[np.newaxis,...]
 
         super().__init__(**kwargs)
 

@@ -165,8 +165,8 @@ cdef class PseudoSpectralKernel:
         vh = self._empty_com()
         self.vh = vh
         
-        htop = self._empty_real()
-        self.htop = htop
+        # htop = self._empty_real()
+        # self.htop = htop
 
         uq = self._empty_real()
         self.uq = uq
@@ -658,6 +658,11 @@ cdef class PseudoSpectralKernel:
             return np.asarray(self.Hi)
         def __set__(self, np.ndarray[DTYPE_real_t, ndim=1] Hi):
             self.Hi = Hi
+    property htop:
+        def __get__(self):
+            return np.asarray(self.htop)
+        def __set__(self, np.ndarray[DTYPE_real_t, ndim=3] htop):
+            self.htop = htop 
     property q:
         def __get__(self):
             return np.asarray(self.q)
@@ -692,9 +697,6 @@ cdef class PseudoSpectralKernel:
     property v:
         def __get__(self):
             return np.asarray(self.v)
-    property htop:
-        def __get__(self):
-            return np.asarray(self.htop)
     property ufull:
         def __get__(self):
             return np.asarray(self.u) + \
