@@ -59,11 +59,15 @@ class QGModel(qg_diagnostics.QGDiagnostics):
 
     def __init__(
         self,
+        f0=0.00011016947169980042,  # constant coriolis value at same latitude as beta
         beta=1.5e-11,               # gradient of coriolis parameter
         #rek=5.787e-7,               # linear drag in lower layer
         rd=15000.0,                 # deformation radius
         delta=0.25,                 # layer thickness ratio (H1/H2)
         H1 = 500,                   # depth of layer 1 (H1)
+        htop=np.zeros((0,0)),       # rough bottom topography array
+        hy=0.,                      # meridional gradient of linearly sloping topography
+        hx=0.,                      # zonal gradient of linearly sloping topography
         U1=0.025,                   # upper layer flow
         U2=0.0,                     # lower layer flow
         **kwargs
@@ -71,8 +75,9 @@ class QGModel(qg_diagnostics.QGDiagnostics):
         """
         Parameters
         ----------
-
-        beta : number
+        f0 : number, optional
+            Constant value of coriolis parameters, should be at same latitude as what is given for \beta.
+        beta : number, optional
             Gradient of coriolis parameter. Units: meters :sup:`-1`
             seconds :sup:`-1`
         rek : number
@@ -81,6 +86,15 @@ class QGModel(qg_diagnostics.QGDiagnostics):
             Deformation radius. Units: meters.
         delta : number
             Layer thickness ratio (H1/H2)
+        H1 : number
+            Depth of layer 1 (H1)
+        htop : array, optional
+            Height of rough topography. Assumed to be doubly-periodic.
+            Units: meters
+        hy : number, optional
+            Meridional gradient of linearly sloping topography.
+        hx : number, optional
+            Zonal gradient of linearly sloping topography.
         U1 : number
             Upper layer flow. Units: meters seconds :sup:`-1`
         U2 : number
@@ -88,11 +102,14 @@ class QGModel(qg_diagnostics.QGDiagnostics):
         """
 
         # physical
+        self.f0 = f0
         self.beta = beta
         #self.rek = rek
         self.rd = rd
         self.delta = delta
         self.Hi = np.array([ H1, H1/delta])
+        self.hy = hy
+        self.hx = hx
         self.U1 = U1
         self.U2 = U2
         #self.filterfac = filterfac
@@ -110,8 +127,16 @@ class QGModel(qg_diagnostics.QGDiagnostics):
     def _initialize_background(self):
         """Set up background state (zonal flow and PV gradients)."""
 
-        # Background zonal flow (m/s):
+        # Depth and topography
         self.H = self.Hi.sum()
+        
+        if htop.size > 0:
+            self.htop = np.array(htop)[np.newaxis,...]
+        else:
+            self.htop = np.zeros((int(self.ny),int(self.nx)))[np.newaxis,...]
+            
+        
+        # Background zonal flow (m/s):
         self.set_U1U2(self.U1, self.U2)
         self.U = self.U1 - self.U2
         self.Vbg = np.zeros_like(self.Ubg)
@@ -122,16 +147,27 @@ class QGModel(qg_diagnostics.QGDiagnostics):
 
         # the meridional PV gradients in each layer
         self.Qy1 = self.beta + self.F1*(self.U1 - self.U2)
-        self.Qy2 = self.beta - self.F2*(self.U1 - self.U2)
+        self.Qy2 = self.beta - self.F2*(self.U1 - self.U2) + (self.f0 / self.Hi[self.nz-1])*self.hy
         self.Qy = np.array([self.Qy1, self.Qy2])
-        # complex versions, multiplied by k, speeds up computations to precompute
+        
+        # the zonal PV gradients in each layer
+        self.Qx1 = 0.
+        self.Qx2 = (self.f0 / self.Hi[self.nz-1])*self.hx
+        self.Qx = np.array([self.Qx1, self.Qx2]) 
+        
+        # complex versions, multiplied by k, l, speeds up computations to precompute
         self.ikQy1 = self.Qy1 * 1j * self.k
         self.ikQy2 = self.Qy2 * 1j * self.k
+        
+        self.ilQx1 = self.Qx1 * 1j * self.l
+        self.ilQx2 = self.Qx2 * 1j * self.l
 
         # vector version
         self.ikQy = np.vstack([self.ikQy1[np.newaxis,...],
                                self.ikQy2[np.newaxis,...]])
-        self.ilQx = 0.
+        
+        self.ilQy = np.vstack([self.ilQx1[np.newaxis,...],
+                               self.ilQx2[np.newaxis,...]])
 
         # layer spacing
         self.del1 = self.delta/(self.delta+1.)
