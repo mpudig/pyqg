@@ -91,6 +91,7 @@ cdef class PseudoSpectralKernel:
     cdef DTYPE_real_t [:] Ubg
     cdef DTYPE_real_t [:] Qy
     cdef DTYPE_real_t [:] Qx
+    cdef DTYPE_real_t [:] Hi
     cdef readonly DTYPE_com_t [:, :] _ikQy
     cdef readonly DTYPE_com_t [:, :] _ilQx
 
@@ -100,6 +101,9 @@ cdef class PseudoSpectralKernel:
 
     # friction parameter
     cdef public DTYPE_real_t rek
+    
+    # for bottom topography
+    cdef public DTYPE_real_t f0
 
     # time
     # need to have a property to deal with resetting timestep
@@ -219,6 +223,9 @@ cdef class PseudoSpectralKernel:
 
         # friction
         self.rek = 0.0
+        
+        # for bottom topography
+        self.f0 = 0.0
 
         # the tendency
         self.dqhdt = self._empty_com()
@@ -646,6 +653,11 @@ cdef class PseudoSpectralKernel:
             self.Qx = Qx
             self._ilQx = 1j * (np.asarray(self.ll)[np.newaxis, :] *
                                np.asarray(Qx)[:, np.newaxis])
+    property Hi:
+        def __get__(self):
+            return np.asarray(self.Hi)
+        def __set__(self, np.ndarray[DTYPE_real_t, ndim=1] Hi):
+            self.Hi = Hi
     property q:
         def __get__(self):
             return np.asarray(self.q)
