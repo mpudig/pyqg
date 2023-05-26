@@ -113,6 +113,14 @@ class QGModel(qg_diagnostics.QGDiagnostics):
         self.U1 = U1
         self.U2 = U2
         #self.filterfac = filterfac
+        
+        # Depth and topography
+        self.H = self.Hi.sum()
+        
+        if htop.size > 0:
+            self.htop = np.array(htop)[np.newaxis,...]
+        else:
+            self.htop = np.zeros((int(self.ny),int(self.nx)))[np.newaxis,...]
 
         super().__init__(nz=2, **kwargs)
 
@@ -126,14 +134,6 @@ class QGModel(qg_diagnostics.QGDiagnostics):
 
     def _initialize_background(self):
         """Set up background state (zonal flow and PV gradients)."""
-
-        # Depth and topography
-        self.H = self.Hi.sum()
-        
-        if htop.size > 0:
-            self.htop = np.array(htop)[np.newaxis,...]
-        else:
-            self.htop = np.zeros((int(self.ny),int(self.nx)))[np.newaxis,...]
             
         
         # Background zonal flow (m/s):
