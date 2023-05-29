@@ -164,9 +164,6 @@ cdef class PseudoSpectralKernel:
         self.v = v
         vh = self._empty_com()
         self.vh = vh
-        
-        # htop = self._empty_real()
-        # self.htop = htop
 
         uq = self._empty_real()
         self.uq = uq

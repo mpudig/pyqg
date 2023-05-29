@@ -124,13 +124,15 @@ class LayeredModel(qg_diagnostics.QGDiagnostics):
         self.beta = beta
         self.rd = rd
         self.delta = delta
+        self.hy = hy
+        self.hx = hx
 
         if U is None: U = (np.arange(nz) * 0.025)[::-1]
         if V is None: V = np.zeros(nz)
         if H is None: H = [500] + [1750 for _ in range(nz-1)]
         
         if htop is None:
-            self.htop = np.zeros((int(self.ny),int(self.nx)))[np.newaxis,...]
+            self.htop = np.zeros((self.ny, self.nx))[np.newaxis,...]
         else:
             self.htop = np.array(htop)[np.newaxis,...]
             
@@ -219,9 +221,9 @@ class LayeredModel(qg_diagnostics.QGDiagnostics):
 
         # the meridional PV gradients in each layer
         self.Qy = self.beta - np.dot(self.S,self.Ubg) \
-                    + (self.f / self.Hi[self.nz-1])*self.hy * np.eye(1,self.nz,self.nz-1) # m^-1 s^-1 
+                     + (self.f / self.Hi[self.nz-1])*self.hy * np.eye(1,self.nz,self.nz-1)[0] # m^-1 s^-1 
         self.Qx = np.dot(self.S,self.Vbg) \
-                    + (self.f / self.Hi[self.nz-1])*self.hx * np.eye(1,self.nz,self.nz-1) # m^-1 s^-1 
+                     + (self.f / self.Hi[self.nz-1])*self.hx * np.eye(1,self.nz,self.nz-1)[0] # m^-1 s^-1 
 
 
         # complex versions, multiplied by k, l speeds up computations to precompute
