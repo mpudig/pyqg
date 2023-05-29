@@ -23,7 +23,7 @@ class BTModel(model.Model):
 
     """
 
-    def __init__(self, f=0., beta=0.,  rd=0., H=1., htop=np.zeros((1,1)), hy=0., hx=0., U=0., **kwargs):
+    def __init__(self, f=0., beta=0.,  rd=0., H=1., htop=None, hy=0., hx=0., U=0., **kwargs):
         """
         Parameters
         ----------
@@ -37,7 +37,7 @@ class BTModel(model.Model):
             Deformation radius. Units: meters.
         H : number, optional
             Mean height of layer. Units: meters
-        htop : array, optional
+        htop : (x,y) array, optional
             Height of rough topography. Assumed to be doubly-periodic.
             Units: meters
         hy : number, optional
@@ -53,7 +53,6 @@ class BTModel(model.Model):
         self.rd = rd
         self.H = H
         self.Hi = np.array(H)[np.newaxis,...]
-        #self.htop = np.array(np.array(htop)[np.newaxis,...])
         self.hy = hy
         self.hx = hx
         self.U = U
@@ -67,11 +66,11 @@ class BTModel(model.Model):
             self.kd2 = 0.
             
         # rough topography
-        # if htop is not None:
-        if htop.size > 1:
-            self.htop = np.array(htop)[np.newaxis,...]
-        else:
+        if htop is None:
             self.htop = np.zeros((int(self.ny),int(self.nx)))[np.newaxis,...]
+        else:
+            self.htop = np.array(htop)[np.newaxis,...]
+            
 
         super().__init__(**kwargs)
 

@@ -65,7 +65,7 @@ class QGModel(qg_diagnostics.QGDiagnostics):
         rd=15000.0,                 # deformation radius
         delta=0.25,                 # layer thickness ratio (H1/H2)
         H1 = 500,                   # depth of layer 1 (H1)
-        htop=np.zeros((1,1)),       # rough bottom topography array
+        htop=None,                  # rough bottom topography array
         hy=0.,                      # meridional gradient of linearly sloping topography
         hx=0.,                      # zonal gradient of linearly sloping topography
         U1=0.025,                   # upper layer flow
@@ -88,7 +88,7 @@ class QGModel(qg_diagnostics.QGDiagnostics):
             Layer thickness ratio (H1/H2)
         H1 : number
             Depth of layer 1 (H1)
-        htop : array, optional
+        htop : (x,y) array, optional
             Height of rough topography. Assumed to be doubly-periodic.
             Units: meters
         hy : number, optional
@@ -108,7 +108,6 @@ class QGModel(qg_diagnostics.QGDiagnostics):
         self.rd = rd
         self.delta = delta
         self.Hi = np.array([ H1, H1/delta])
-        #self.htop = np.array(np.array(htop)[np.newaxis,...])
         self.hy = hy
         self.hx = hx
         self.U1 = U1
@@ -118,10 +117,10 @@ class QGModel(qg_diagnostics.QGDiagnostics):
         # Depth and topography
         self.H = self.Hi.sum()
         
-        if htop.size > 1:
-            self.htop = np.array(htop)[np.newaxis,...]
-        else:
+        if htop is None:
             self.htop = np.zeros((int(self.ny),int(self.nx)))[np.newaxis,...]
+        else:
+            self.htop = np.array(htop)[np.newaxis,...]
 
         super().__init__(nz=2, **kwargs)
 

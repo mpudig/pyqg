@@ -76,6 +76,9 @@ class LayeredModel(qg_diagnostics.QGDiagnostics):
         nz = 3,                      # number of layers
         rd = 15000.0,                # deformation radius
         H = None,                    # layer thickness
+        htop = None,                 # rough bottom topography array
+        hy = 0.,                     # meridional gradient of linearly sloping topography
+        hx = 0.,                     # zonal gradient of linearly sloping topography
         U = None,                    # zonal base state flow
         V = None,                    # meridional base state flow
         rho = None,
@@ -85,12 +88,13 @@ class LayeredModel(qg_diagnostics.QGDiagnostics):
         """
         Parameters
         ----------
-
-        nz : integer number
-             Number of layers (> 1)
+        f : number, optional
+            Constant value of coriolis parameter, should be at same latitude as what is given for \beta.
         beta : number
             Gradient of coriolis parameter. Units: meters :sup:`-1`
             seconds :sup:`-1`
+        nz : integer number
+             Number of layers (> 1)
         rd : number
             Deformation radius. Units: meters. Only necessary for
             the two-layer (nz=2) case.
@@ -103,12 +107,20 @@ class LayeredModel(qg_diagnostics.QGDiagnostics):
             Base state meridional velocity. Units: meters seconds :sup:`-1`
         H : array of size nz
             Layer thickness. Units: meters
+        htop : array of shape (nx, ny), optional
+            Height of rough topography. Assumed to be doubly-periodic.
+            Units: meters
+        hy : number, optional
+            Meridional gradient of linearly sloping topography.
+        hx : number, optional
+            Zonal gradient of linearly sloping topography.
         rho: array of size nz.
             Layer density. Units: kilograms meters :sup:`-3`
 
         """
 
         # physical
+        self.f = f
         self.beta = beta
         self.rd = rd
         self.delta = delta
@@ -116,6 +128,12 @@ class LayeredModel(qg_diagnostics.QGDiagnostics):
         if U is None: U = (np.arange(nz) * 0.025)[::-1]
         if V is None: V = np.zeros(nz)
         if H is None: H = [500] + [1750 for _ in range(nz-1)]
+        
+        if htop is None:
+            self.htop = np.zeros((int(self.ny),int(self.nx)))[np.newaxis,...]
+        else:
+            self.htop = np.array(htop)[np.newaxis,...]
+            
         if rho is None: rho = np.arange(nz) * 0.3 + 1025
 
         self.Ubg = np.array(U)
@@ -200,11 +218,13 @@ class LayeredModel(qg_diagnostics.QGDiagnostics):
         self._initialize_stretching_matrix()
 
         # the meridional PV gradients in each layer
-        self.Qy = self.beta - np.dot(self.S,self.Ubg) # m^-1 s^-1 
-        self.Qx = np.dot(self.S,self.Vbg)             # m^-1 s^-1 
+        self.Qy = self.beta - np.dot(self.S,self.Ubg) \
+                    + (self.f / self.Hi[self.nz-1])*self.hy * np.eye(1,self.nz,self.nz-1) # m^-1 s^-1 
+        self.Qx = np.dot(self.S,self.Vbg) \
+                    + (self.f / self.Hi[self.nz-1])*self.hx * np.eye(1,self.nz,self.nz-1) # m^-1 s^-1 
 
 
-        # complex versions, multiplied by k, speeds up computations to precompute
+        # complex versions, multiplied by k, l speeds up computations to precompute
         self.ikQy = self.Qy[:,np.newaxis,np.newaxis]*1j*self.k # m^-2 s^-1 
         self.ilQx = self.Qx[:,np.newaxis,np.newaxis]*1j*self.l # m^-2 s^-1 
 
