@@ -71,13 +71,13 @@ class LayeredModel(qg_diagnostics.QGDiagnostics):
 
     def __init__(
         self,
-        beta = 1.5e-11,             # gradient of coriolis parameter
-        nz = 3,                     # number of layers
-        rd = 15000.0,               # deformation radius
-        f = 0.0001236812857687059,  # coriolis parameter [s^-1]
-        H = None,                   # layer thickness
-        U = None,                   # zonal base state flow
-        V = None,                   # meridional base state flow
+        f = 0.00011016947169980042,  # constant coriolis value at same latitude as beta
+        beta = 1.5e-11,              # gradient of coriolis parameter
+        nz = 3,                      # number of layers
+        rd = 15000.0,                # deformation radius
+        H = None,                    # layer thickness
+        U = None,                    # zonal base state flow
+        V = None,                    # meridional base state flow
         rho = None,
         delta = None,
         **kwargs
