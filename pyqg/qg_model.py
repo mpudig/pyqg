@@ -59,7 +59,7 @@ class QGModel(qg_diagnostics.QGDiagnostics):
 
     def __init__(
         self,
-        f0=0.00011016947169980042,  # constant coriolis value at same latitude as beta
+        f=0.00011016947169980042,   # constant coriolis value at same latitude as beta
         beta=1.5e-11,               # gradient of coriolis parameter
         #rek=5.787e-7,               # linear drag in lower layer
         rd=15000.0,                 # deformation radius
@@ -75,8 +75,8 @@ class QGModel(qg_diagnostics.QGDiagnostics):
         """
         Parameters
         ----------
-        f0 : number, optional
-            Constant value of coriolis parameters, should be at same latitude as what is given for \beta.
+        f : number, optional
+            Constant value of coriolis parameter, should be at same latitude as what is given for \beta.
         beta : number, optional
             Gradient of coriolis parameter. Units: meters :sup:`-1`
             seconds :sup:`-1`
@@ -102,12 +102,13 @@ class QGModel(qg_diagnostics.QGDiagnostics):
         """
 
         # physical
-        self.f0 = f0
+        self.f = f
         self.beta = beta
         #self.rek = rek
         self.rd = rd
         self.delta = delta
         self.Hi = np.array([ H1, H1/delta])
+        #self.htop = np.array(np.array(htop)[np.newaxis,...])
         self.hy = hy
         self.hx = hx
         self.U1 = U1
@@ -147,12 +148,12 @@ class QGModel(qg_diagnostics.QGDiagnostics):
 
         # the meridional PV gradients in each layer
         self.Qy1 = self.beta + self.F1*(self.U1 - self.U2)
-        self.Qy2 = self.beta - self.F2*(self.U1 - self.U2) + (self.f0 / self.Hi[self.nz-1])*self.hy
+        self.Qy2 = self.beta - self.F2*(self.U1 - self.U2) + (self.f / self.Hi[self.nz-1])*self.hy
         self.Qy = np.array([self.Qy1, self.Qy2])
         
         # the zonal PV gradients in each layer
         self.Qx1 = 0.
-        self.Qx2 = (self.f0 / self.Hi[self.nz-1])*self.hx
+        self.Qx2 = (self.f / self.Hi[self.nz-1])*self.hx
         self.Qx = np.array([self.Qx1, self.Qx2]) 
         
         # complex versions, multiplied by k, l, speeds up computations to precompute

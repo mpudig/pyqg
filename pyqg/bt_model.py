@@ -23,12 +23,12 @@ class BTModel(model.Model):
 
     """
 
-    def __init__(self, f0=0., beta=0.,  rd=0., H=1., htop=np.zeros((1,1)), hy=0., hx=0., U=0., **kwargs):
+    def __init__(self, f=0., beta=0.,  rd=0., H=1., htop=np.zeros((1,1)), hy=0., hx=0., U=0., **kwargs):
         """
         Parameters
         ----------
-        f0 : number, optional
-            Constant value of coriolis parameters, should be at same latitude as what is given for \beta.
+        f : number, optional
+            Constant value of coriolis parameter, should be at same latitude as what is given for \beta.
             Units: seconds :sup:`-1`
         beta : number, optional
             Gradient of coriolis parameter. Units: meters :sup:`-1`
@@ -48,11 +48,12 @@ class BTModel(model.Model):
             Upper layer flow. Units: meters seconds :sup:`-1`.
         """
 
-        self.f0 = f0
+        self.f = f
         self.beta = beta
         self.rd = rd
         self.H = H
         self.Hi = np.array(H)[np.newaxis,...]
+        #self.htop = np.array(np.array(htop)[np.newaxis,...])
         self.hy = hy
         self.hx = hx
         self.U = U
@@ -81,10 +82,10 @@ class BTModel(model.Model):
         """Set up background state (zonal flow and PV gradients)."""
 
         # the meridional PV gradients in each layer
-        self.Qy = np.asarray(self.beta + (self.f0 / self.H)*self.hy)[np.newaxis, ...]
+        self.Qy = np.asarray(self.beta + (self.f / self.H)*self.hy)[np.newaxis, ...]
         
         # the zonal PV gradients in each layer
-        self.Qx = np.asarray((self.f0 / self.H)*self.hx)[np.newaxis, ...]
+        self.Qx = np.asarray((self.f / self.H)*self.hx)[np.newaxis, ...]
 
         # background vel.
         self.set_U(self.U)

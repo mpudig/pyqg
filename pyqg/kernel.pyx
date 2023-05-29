@@ -103,7 +103,7 @@ cdef class PseudoSpectralKernel:
     cdef public DTYPE_real_t rek
     
     # for bottom topography
-    cdef public DTYPE_real_t f0
+    cdef public DTYPE_real_t f
 
     # time
     # need to have a property to deal with resetting timestep
@@ -437,8 +437,8 @@ cdef class PseudoSpectralKernel:
                       chunksize=self.chunksize,
                       num_threads=self.num_threads):
             for i in range(self.nx):
-                self.uhtop[self.nz-1,j,i] = self.u[self.nz-1,j,i] * (self.f0 / self.Hi[self.nz-1])*self.htop[0,j,i]
-                self.vhtop[self.nz-1,j,i] = self.v[self.nz-1,j,i] * (self.f0 / self.Hi[self.nz-1])*self.htop[0,j,i]
+                self.uhtop[self.nz-1,j,i] = self.u[self.nz-1,j,i] * (self.f / self.Hi[self.nz-1])*self.htop[0,j,i]
+                self.vhtop[self.nz-1,j,i] = self.v[self.nz-1,j,i] * (self.f / self.Hi[self.nz-1])*self.htop[0,j,i]
 
         # transform to get spectral topographic flux
         with gil:
@@ -536,8 +536,8 @@ cdef class PseudoSpectralKernel:
 #                       chunksize=self.chunksize,
 #                       num_threads=self.num_threads):
 #             for i in range(self.nx):
-#                 self.uhtop[k,j,i] = self.u[k,j,i] * (self.f0 / self.Hi[k])*self.htop[k,j,i]
-#                 self.vhtop[k,j,i] = self.v[k,j,i] * (self.f0 / self.Hi[k])*self.htop[k,j,i]
+#                 self.uhtop[k,j,i] = self.u[k,j,i] * (self.f / self.Hi[k])*self.htop[k,j,i]
+#                 self.vhtop[k,j,i] = self.v[k,j,i] * (self.f / self.Hi[k])*self.htop[k,j,i]
 
 #         # transform to get spectral topographic flux
 #         with gil:
