@@ -413,6 +413,9 @@ class Model(PseudoSpectralKernel):
 
         self._do_friction()
         # apply friction
+        
+        self._do_bottom_topography()
+        # add bottom topography term to lowest layer in advection tendency
 
         self._do_external_forcing()
         # apply external forcing
