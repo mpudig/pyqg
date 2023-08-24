@@ -1,4 +1,4 @@
-import numpy as np
+ximport numpy as np
 from numpy import pi
 import logging
 import warnings

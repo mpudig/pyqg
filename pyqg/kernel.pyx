@@ -113,6 +113,7 @@ cdef class PseudoSpectralKernel:
     cdef readonly int ablevel
 
     # threading
+    cdef int ntd
     cdef int num_threads
     # number of elements per work group in the y / l direction
     cdef int chunksize
@@ -132,7 +133,7 @@ cdef class PseudoSpectralKernel:
     cdef object _dummy_fft
     cdef object _dummy_ifft
 
-    def __init__(self, int nz, int ny, int nx, int fftw_num_threads=1,
+    def __init__(self, int nz, int ny, int nx, int ntd,
             int has_q_param=0, int has_uv_param=0):
         self.nz = nz
         self.ny = ny
@@ -227,7 +228,8 @@ cdef class PseudoSpectralKernel:
         self.dqhdt_pp = self._empty_com()
 
         # for threading
-        self.num_threads = fftw_num_threads
+        self.ntd = ntd
+        self.num_threads = ntd
         self.chunksize = self.nl/self.num_threads
 
         IF PYQG_USE_PYFFTW:
@@ -237,37 +239,37 @@ cdef class PseudoSpectralKernel:
             # will destroy the input array. This is inherent to FFTW and the only
             # general work-around for this is to copy the array prior to
             # performing the transform.
-            self.fft_q_to_qh = pyfftw.FFTW(q, qh, threads=fftw_num_threads,
+            self.fft_q_to_qh = pyfftw.FFTW(q, qh, threads=ntd,
                              direction='FFTW_FORWARD', axes=(-2,-1))
-            self.ifft_qh_to_q = pyfftw.FFTW(qh, q, threads=fftw_num_threads,
+            self.ifft_qh_to_q = pyfftw.FFTW(qh, q, threads=ntd,
                              direction='FFTW_BACKWARD', axes=(-2,-1))
-            self.ifft_uh_to_u = pyfftw.FFTW(uh, u, threads=fftw_num_threads,
+            self.ifft_uh_to_u = pyfftw.FFTW(uh, u, threads=ntd,
                              direction='FFTW_BACKWARD', axes=(-2,-1))
-            self.ifft_vh_to_v = pyfftw.FFTW(vh, v, threads=fftw_num_threads,
+            self.ifft_vh_to_v = pyfftw.FFTW(vh, v, threads=ntd,
                              direction='FFTW_BACKWARD', axes=(-2,-1))
             if has_uv_param:
-                self.fft_du_to_duh = pyfftw.FFTW(du, duh, threads=fftw_num_threads,
+                self.fft_du_to_duh = pyfftw.FFTW(du, duh, threads=ntd,
                                                  direction='FFTW_FORWARD',
                                                  axes=(-2, -1))
-                self.fft_dv_to_dvh = pyfftw.FFTW(dv, dvh, threads=fftw_num_threads,
+                self.fft_dv_to_dvh = pyfftw.FFTW(dv, dvh, threads=ntd,
                                                  direction='FFTW_FORWARD',
                                                  axes=(-2, -1))
             if has_q_param:
-                self.fft_dq_to_dqh = pyfftw.FFTW(dq, dqh, threads=fftw_num_threads,
+                self.fft_dq_to_dqh = pyfftw.FFTW(dq, dqh, threads=ntd,
                                                  direction='FFTW_FORWARD',
                                                  axes=(-2, -1))
-            self.fft_uq_to_uqh = pyfftw.FFTW(uq, uqh, threads=fftw_num_threads,
+            self.fft_uq_to_uqh = pyfftw.FFTW(uq, uqh, threads=ntd,
                              direction='FFTW_FORWARD', axes=(-2,-1))
-            self.fft_vq_to_vqh = pyfftw.FFTW(vq, vqh, threads=fftw_num_threads,
+            self.fft_vq_to_vqh = pyfftw.FFTW(vq, vqh, threads=ntd,
                              direction='FFTW_FORWARD', axes=(-2,-1))
-            self.fft_uhtop_to_uhtoph = pyfftw.FFTW(uhtop, uhtoph, threads=fftw_num_threads,
+            self.fft_uhtop_to_uhtoph = pyfftw.FFTW(uhtop, uhtoph, threads=ntd,
                              direction='FFTW_FORWARD', axes=(-2,-1))
-            self.fft_vhtop_to_vhtoph = pyfftw.FFTW(vhtop, vhtoph, threads=fftw_num_threads,
+            self.fft_vhtop_to_vhtoph = pyfftw.FFTW(vhtop, vhtoph, threads=ntd,
                              direction='FFTW_FORWARD', axes=(-2,-1))
             # dummy ffts for diagnostics
-            self._dummy_fft = pyfftw.FFTW(dfftin, dfftout, threads=fftw_num_threads,
+            self._dummy_fft = pyfftw.FFTW(dfftin, dfftout, threads=ntd,
                              direction='FFTW_FORWARD', axes=(-2,-1))
-            self._dummy_ifft = pyfftw.FFTW(difftin, difftout, threads=fftw_num_threads,
+            self._dummy_ifft = pyfftw.FFTW(difftin, difftout, threads=ntd,
                              direction='FFTW_BACKWARD', axes=(-2,-1))
 
     # otherwise define those functions using numpy
