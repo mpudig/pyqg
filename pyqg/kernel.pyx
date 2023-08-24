@@ -230,7 +230,7 @@ cdef class PseudoSpectralKernel:
         # for threading
         self.ntd = ntd
         self.num_threads = ntd
-        self.chunksize = self.nl/self.num_threads
+        self.chunksize = self.nl//self.ntd
 
         IF PYQG_USE_PYFFTW:
             # set up FFT plans
