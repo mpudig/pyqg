@@ -523,9 +523,8 @@ cdef class PseudoSpectralKernel:
                       num_threads=self.num_threads):
             for i in range(self.nk):
                 self.dqhdt[k,j,i] = (
-                 self.dqhdt[k,j,i] +
-                        (self._ik[i] * self.uhtoph[k,j,i] +
-                         self._il[j] * self.vhtoph[k,j,i]) )
+                 self.dqhdt[k,j,i] - (self._ik[i] * self.uhtoph[k,j,i] +
+                                      self._il[j] * self.vhtoph[k,j,i]) )
         return
 
     def _forward_timestep(self):
