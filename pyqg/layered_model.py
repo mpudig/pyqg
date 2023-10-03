@@ -193,7 +193,7 @@ class LayeredModel(qg_diagnostics.QGDiagnostics):
         self.H = self.Hi.sum()
 
         if not (self.nz==2):
-            self.gpi = self.g*(self.rhoi[1:]-self.rhoi[:-1])/self.rhoi[:-1] # m s^-2
+            self.gpi = self.g*(self.rhoi[1:]-self.rhoi[:-1])/self.rhoi[0] # m s^-2
             self.f2gpi = (self.f2/self.gpi)[:,np.newaxis,np.newaxis] # m^-1
 
             assert self.gpi.size == self.nz-1, "Invalid size of gpi"
