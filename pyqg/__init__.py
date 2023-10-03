@@ -5,6 +5,7 @@ from .sqg_model import SQGModel
 from .layered_model import LayeredModel
 from .particles import LagrangianParticleArray2D, GriddedLagrangianParticleArray2D
 from .parameterizations import *
+from .qg_model_rough_modes import QGModel_rough
 
 try:
     from importlib.metadata import version, PackageNotFoundError

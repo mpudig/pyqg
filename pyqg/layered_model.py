@@ -39,7 +39,7 @@ class LayeredModel(qg_diagnostics.QGDiagnostics):
 
     .. math::
 
-       g'_i \equiv g \frac{\rho_{i+1}-\rho_i}{\rho_i}\,.
+       g'_i \equiv g \frac{\rho_{i+1}-\rho_i}{\rho_0}\,.
 
     The evolution equations are
 
