@@ -166,7 +166,7 @@ class QGModel(qg_diagnostics.QGDiagnostics):
         self.ikQy = np.vstack([self.ikQy1[np.newaxis,...],
                                self.ikQy2[np.newaxis,...]])
         
-        self.ilQy = np.vstack([self.ilQx1[np.newaxis,...],
+        self.ilQx = np.vstack([self.ilQx1[np.newaxis,...],
                                self.ilQx2[np.newaxis,...]])
 
         # layer spacing
